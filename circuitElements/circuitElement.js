@@ -23,7 +23,8 @@ class CircuitElement {
     }
 
     setGlobalVoltage(voltage) {
-
+      this.globalVoltage = Battery.potentialDifference();
+      //ok I wrote this (Nate) and I don't know what I'm doing but this looks good to me
     }
 
     totalResistance(){
