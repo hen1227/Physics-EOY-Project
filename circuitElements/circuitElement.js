@@ -5,13 +5,15 @@ class CircuitElement {
       this.globalVoltage = 0;
       this.startPoint = startPoint;
       this.endPoint = endPoint;
-      this.current = 0;
+      this.currentID = 0;
       this.resistance = 0;
+      
 
       // These names are for visualization purposes only
       // the current and charge can flow either way
-      this.negativeConnections = [];
-      this.positiveConnections = [];
+
+      // this.negativeConnections = [];
+      this.connections = [];
     }
   
     setStartPoint(x, y) {
@@ -22,27 +24,54 @@ class CircuitElement {
       this.endPoint = createVector(x, y);
     }
 
-    setGlobalVoltage(voltage) {
-      this.globalVoltage = Battery.potentialDifference();
-      //ok I wrote this (Nate) and I don't know what I'm doing but this looks good to me
-    }
-
     totalResistance(){
       // Get the total resistance of this element and all elements connected to it
       let childrenResistance = 0;
-      for(let i = 0; i < this.positiveConnections.length; i++){
-        childrenResistance += this.positiveConnections[i].totalResistance();
+      for(let i = 0; i < this.connections.length; i++){
+        childrenResistance += 1/this.connections[i].totalResistance();
       }
-      return this.resistance + childrenResistance;
+      return this.resistance + (1/childrenResistance);
     }
 
-    // Called every frame
-    updateCurrent(){
-      // Update current in all connecting elements
-      for (let i = 0; i < this.positiveConnections.length; i++) {
-        this.positiveConnections[i].current = this.current;
+    // Don't worry about this yet
+    // I can explain it a lot better inperson
+    updateCurrentIDs(parentID, loopID){
+      this.currentID = parentID;
+      mainCircuit.addCurrentToKichoffsVoltageLaw(parentID, loopID, this.resistance);
+
+
+      if(this.connections.length == 1){
+        this.connections[0].updateCurrentIDs(parentID, loopID);
+        return;
+      }else if (this.connections.length > 0) {
+
+        // Add Kirchhoff's Current Law for the spliting current
+        // I_2 + I_3 = I_1
+        mainCircuit.addCurrentToKichoffsCurrentLaw(parentID, this.connections.length);
+
+        // If there are multiple connections, we need to split the current
+        // Update current in all connecting elements
+        this.connections[0].updateCurrentIDs(parentID, loopID);
+        for (let i = 1; i < this.connections.length; i++) {
+          loopID++;
+          parentID++;
+
+          mainCircuit.createLoop(loopID);
+          this.connections[i].updateCurrentIDs(parentID, loopID);
+          
+          // Set after the first loop so the first element is the original loop
+        }
       }
     }
+
+    updateCurrent(){
+
+    }
+
+    addElement(element){
+      this.connections.push(element);
+    }
+
 
     potentialDifference() {
       // Get the potential difference between the two ends of this element
@@ -56,8 +85,8 @@ class CircuitElement {
         // Should be overriden by each child class
 
         // But all elements need to also render their children
-        for (let i = 0; i < this.positiveConnections.length; i++) {
-          this.positiveConnections[i].renderElement();
+        for (let i = 0; i < this.connections.length; i++) {
+          this.connections[i].renderElement();
         }
     }
 

@@ -13,6 +13,14 @@ class Battery extends CircuitElement {
 
     }
 
+    updateCurrentIDs(parentID, loopID){
+        if(parentID == -1){
+            super.updateCurrentIDs(0, loopID);
+            return;
+        }
+        mainCircuit.completedLoop(loopID);
+    }
+
     potentialDifference() {
         // Constant for a battery
         return this.emf;
