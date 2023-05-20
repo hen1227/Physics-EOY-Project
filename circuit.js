@@ -13,7 +13,19 @@ class Circuit {
         this.elements.push(element);
     }
 
+    clearCalculations() {
+        
+        this.loops = [new LoopCalculator(0)];
+        this.currentCombos = [];
+
+        this.latestCurrent = 1;
+
+        this.elements[0].initalElement = false;
+    }
+
     solve() {
+        this.clearCalculations();
+
         // Initialize the equations and results arrays with a size of elements.length * 2
         // This is because in the worst case, each element could be in a different loop
 
@@ -24,7 +36,10 @@ class Circuit {
         // Traverse the circuit starting from the battery
         // print(this.loops)
         this.elements[0].traverse(0, -1, this);
-        
+
+        this.factorInCapacitors();
+        this.factorInInductors();
+
         let equations = [];
         let results = [];
 
@@ -38,15 +53,31 @@ class Circuit {
             equations.push(this.currentCombos[i].getEquation(numCurrents, results));
         }
 
-        print(equations);
-        print(results);
+        // print(equations);
+        // print(results);
         
         // Solve the system of equations using math.js
         let A = math.matrix(equations);
         let b = math.matrix(results);
-        print(A);
-        print(b);
+        // print(A);
+        // print(b);
         this.currentSolution = math.lusolve(A, b);
+    }
+
+    factorInCapacitors(){
+        for(let i = 0; i < this.elements.length; i++){
+            if(this.elements[i].capacitance){
+                this.loops[this.elements[i].loopID].value -= this.elements[i].calculateVoltageDrop(this, 0.05);
+            }
+        }
+    }
+
+    factorInInductors(){
+        for(let i = 0; i < this.elements.length; i++){
+            if(this.elements[i].inductance){
+                this.loops[this.elements[i].loopID].value -= this.elements[i].calculateVoltageDrop(this, 0.05);
+            }
+        }
     }
         
 
@@ -62,7 +93,7 @@ class Circuit {
     addResistanceToLoop(currentID, loopID, resistance){
         // print(loopID)
         // print(this.loops)
-        print("adding " + resistance + " resistance to current (" + currentID + ") in loop (" + loopID + ")")
+        // print("adding " + resistance + " resistance to current (" + currentID + ") in loop (" + loopID + ")")
         this.loops[loopID].addResistance(currentID, resistance);
     }
 
@@ -71,10 +102,6 @@ class Circuit {
     }
 
     splitCurrent(currentID, loopID, connections){
-
-        print(this.loops[0].constants[0])
-        print(this.loops[0].constants[1])
-        print(this.loops[0].constants[2])
 
         let newCurrentCombo = new CurrentCombo(currentID);
         let nextID;
@@ -118,7 +145,7 @@ class LoopCalculator{
     addResistance(currentID, resistance){
         while(this.constants.length < currentID + 1) this.constants.push(0);
         this.constants[currentID] += resistance;
-        print("Constants " + this.constants)
+        // print("Constants " + this.constants)
     }
 
     addVoltage(voltage){

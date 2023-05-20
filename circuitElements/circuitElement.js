@@ -1,5 +1,5 @@
 class CircuitElement {
-  constructor(resistance = 0, voltage = 0) {
+  constructor(resistance = 0.001, voltage = 0) {
     this.resistance = resistance;
     this.voltage = voltage;
     this.currentID = null;
@@ -12,7 +12,7 @@ class CircuitElement {
   }
 
   traverse(currentID, loopID, circuit) {
-    print("traversing " + this.resistance + " with currentID " + currentID + " and loopID " + loopID);
+    // print("traversing " + this.resistance + " with currentID " + currentID + " and loopID " + loopID);
     if(!this.initalElement){
       if(loopID == -1){
         this.initalElement = true;
@@ -21,8 +21,7 @@ class CircuitElement {
       // Assign loop and current IDs
       this.loopID = loopID;
       this.currentID = currentID;
-      
-      // Update the corresponding row in the equations matrix
+
       circuit.addResistanceToLoop(this.currentID, this.loopID, this.resistance);
       
       // If this element is a voltage source, update the corresponding entry in the results array
@@ -37,5 +36,9 @@ class CircuitElement {
         this.connections[0].traverse(this.currentID, this.loopID, circuit);
       }
     }
+  }
+
+  renderElement() {
+    text("This is a circuit element. It should not be rendered.", this.startPoint.x, this.startPoint.y);
   }
 }
