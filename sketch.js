@@ -1,40 +1,51 @@
 
 let startingBattery, resistor1, resistor2;
 
-let mainCircuit
+let mainCircuit;
 
 // Called once at the start
-function setup(){
+function setup() {
+    // p5.js setup function
+    createCanvas(800, 600);
 
-    frameRate(1);
+    // Create the circuit
+    let circuit = new Circuit();
 
-    createCanvas(400, 400);
-    background(240);
+    // Create and connect circuit elements
+    let battery = new CircuitElement(0, 12, true);
+    let resistor0 = new CircuitElement(10);
+    let resistor1 = new CircuitElement(10);
+    let resistor2 = new CircuitElement(15);
+    let resistor3 = new CircuitElement(10);
+    let resistor4 = new CircuitElement(10);
 
-    
-    
-    startingBattery = new Battery(12, 0.1, createVector(100, 150), createVector(100, 175));
+    battery.connect(resistor0);
+    resistor0.connect(resistor1);
+    resistor0.connect(resistor2);
+    resistor1.connect(resistor3);
+    resistor1.connect(resistor4);
+    resistor2.connect(battery);
+    resistor3.connect(battery);
+    resistor4.connect(battery);
 
-    mainCircuit = new Circuit(startingBattery);
-    resistor1 = new Resistor(10, createVector(100, 175), createVector(200, 175));
-    resistor2 = new Resistor(20, createVector(140, 175), createVector(240, 175));
-    resistor3 = new Resistor(30, createVector(200, 175), createVector(300, 175));
-    
-    startingBattery.addElement(resistor1);
-    startingBattery.addElement(resistor2);
-    
-    resistor1.addElement(resistor3);
-    resistor2.addElement(resistor3);
-    
-    resistor3.addElement(startingBattery);
+    // Add elements to the circuit
+    circuit.addElement(battery);
+    circuit.addElement(resistor0);
+    circuit.addElement(resistor1);
+    circuit.addElement(resistor2);
+    circuit.addElement(resistor3);
+
+    // Solve the circuit
+    circuit.solve();
+
+    // Print the currents
+    console.log(circuit.getCurrents());
 }
 
 // Called Every frame
 function draw(){
     
-    startingBattery.renderElement();
-
-    mainCircuit.updateCurrentIDs();
+    // startingBattery.renderElement();
     // startingBattery.renderElement();
 }
 

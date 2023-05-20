@@ -1,102 +1,157 @@
-// Ran out of class time before finishing this
-// DOESN't WORK YET
 class Circuit {
+    constructor() {
+        this.elements = [];
+        this.currentSolution = null;
+        
+        this.loops = [new LoopCalculator(0)];
+        this.currentCombos = [];
 
-    constructor(startingElement) {
-        this.currents = [];
-        this.startingElement = startingElement;
-
-        // The main loop is uncompleted
-        this.uncompletedLoops = 1;
-
-        // Holds the current combinations before being
-        // Added to kirchhoffsLaws
-        this.kirchhoffsCurrentLaws = new Array(25).fill([]);
-
-        this.kirchhoffsLaws = new Array(25).fill([]);
-
-        // The solution constants to the system of equations
-        this.resultingValues = new Array(25).fill(0);
+        this.latestCurrent = 1;
     }
 
-    // Get current of id
-    getCurrent(id) {
+    addElement(element) {
+        this.elements.push(element);
+    }
 
-        // intensionally not `return this.currents[id]`
-        for(let i = 0; i < this.currents.length; i++){
-            if(this.currents[i].id == id){
-                return this.currents[i];
-            }
+    solve() {
+        // Initialize the equations and results arrays with a size of elements.length * 2
+        // This is because in the worst case, each element could be in a different loop
+
+        // let equations = Array(this.elements.length * 2).fill(0).map(() => Array(this.elements.length * 2).fill(0));
+        // let results = Array(this.elements.length * 2).fill(0);
+        // let currentLaws = [];
+        
+        // Traverse the circuit starting from the battery
+        // print(this.loops)
+        this.elements[0].traverse(0, -1, this);
+        
+        let equations = [];
+        let results = [];
+
+        let numCurrents = this.nextCurrentID();
+
+        for(let i = 0; i < this.loops.length; i++){
+            equations.push(this.loops[i].getEquation(numCurrents, results));
+        }
+
+        for(let i = 0; i < this.currentCombos.length; i++){
+            equations.push(this.currentCombos[i].getEquation(numCurrents, results));
+        }
+
+        print(equations);
+        print(results);
+        
+        // Solve the system of equations using math.js
+        let A = math.matrix(equations);
+        let b = math.matrix(results);
+        print(A);
+        print(b);
+        this.currentSolution = math.lusolve(A, b);
+    }
+        
+
+    getCurrents() {
+        // Returns the current solution as an array
+        if (this.currentSolution) {
+            return this.currentSolution.valueOf();
+        } else {
+            return null;
         }
     }
 
-    updateCurrentIDs() {
-        this.startingElement.updateCurrentIDs(-1, 0);
+    addResistanceToLoop(currentID, loopID, resistance){
+        // print(loopID)
+        // print(this.loops)
+        print("adding " + resistance + " resistance to current (" + currentID + ") in loop (" + loopID + ")")
+        this.loops[loopID].addResistance(currentID, resistance);
     }
 
-    updateAllCurrents() {
-        this.startingElement.updateCurrentIDs(0, loopID);
+    addVoltageToLoop(loopID, voltage){
+        this.loops[loopID].addVoltage(voltage);
     }
 
-    calculateCurrents(){
+    splitCurrent(currentID, loopID, connections){
 
-        // Get the resulting Values
-        this.resultingValues = new Array(this.kirchhoffsLaws.length).fill((this.startingElement instanceof Battery).emf);
+        print(this.loops[0].constants[0])
+        print(this.loops[0].constants[1])
+        print(this.loops[0].constants[2])
 
-        //Add Kirchhoff's Current Laws to the system of equations
-        // Might be an easier way to combine arrays
-        for(let i = 0; i < this.kirchhoffsCurrentLaws.length; i++){
-            this.kirchhoffsLaws.push(this.kirchhoffsCurrentLaws[i]);
-            this.resultingValues.push(0);
+        let newCurrentCombo = new CurrentCombo(currentID);
+        let nextID;
+
+        for(let i = 1; i < connections.length; i++){
+            nextID = this.nextCurrentID();
+            let nextLoopID = this.loops.length;
+            this.loops.push(new LoopCalculator(nextLoopID, this.loops[loopID]));
+            connections[i].traverse(nextID, nextLoopID, this);
+            newCurrentCombo.addCurrent(nextID);
         }
 
-        console.log(this.kirchhoffsLaws);
-        console.log(this.resultingValues);
+        nextID = this.nextCurrentID()
+        connections[0].traverse(nextID, loopID, this);
+        
+        newCurrentCombo.addCurrent(nextID);
 
-
-        // Set the currents
-        for(let i = 0; i < this.resultingValues.length; i++){
-            this.getCurrent(i).value = this.resultingValues[i];
-        }
+        this.currentCombos.push(newCurrentCombo);
     }
 
-    createdLoop(loopID){
-        this.uncompletedLoops += 1;
-    }
 
-    completedLoop(loopID){
-        this.uncompletedLoops -= 1;
-        print(this.uncompletedLoops + "Remain un completed loops")
-
-        if(this.uncompletedLoops == 0){
-            this.calculateCurrents();
-        }
-    }
-
-    addCurrentToKichoffsVoltageLaw(id, loopID, resistance){
-        this.kirchhoffsLaws[loopID][id] = this.kirchhoffsLaws[id] + resistance || 0;
-        print(this.kirchhoffsLaws)
-    }
-
-    addCurrentToKichoffsCurrentLaw(id, subCurrentIDs){
-        // The 25 is an arbetrairty number
-        // It is the max number of sub currents
-        let newCurrentLaw = new Array(25).fill(0);
-
-        for(let i = id; i < id + subCurrentIDs; i++){
-            newCurrentLaw[i] = 1;
-        }
-        // Set the solution to -1
-        // -I_1 + I_2 + I_3 = 0
-        newCurrentLaw[id] = -1;
-
-        this.kirchhoffsCurrentLaws.push(newCurrentLaw);
+    nextCurrentID(){
+        return this.latestCurrent++;
     }
 }
 
-class Current {
-    constructor(id) {
-        this.id = id;
-        this.value = 0;
+
+class LoopCalculator{    
+    constructor(loopID, baseLoop){
+        this.loopID = loopID;
+        
+        if (baseLoop == null){
+            this.constants = [];
+            this.value = 0;
+        }else{
+            this.constants = baseLoop.constants.map((x) => x);
+            this.value = baseLoop.value;
+        }
+    }
+
+    addResistance(currentID, resistance){
+        while(this.constants.length < currentID + 1) this.constants.push(0);
+        this.constants[currentID] += resistance;
+        print("Constants " + this.constants)
+    }
+
+    addVoltage(voltage){
+        this.value += voltage;
+    }
+
+    getEquation(numCurrents, result){
+        let equation = Array(numCurrents).fill(0);
+        for(let i = 0; i < this.constants.length; i++){
+            equation[i] = this.constants[i];
+        }
+        result.push(this.value);
+        return equation;
+    }
+}
+
+class CurrentCombo {
+    constructor(baseCurrentID){
+        this.baseCurrentID = baseCurrentID;
+        this.subCurrentIDs = [];
+    }
+
+    addCurrent(currentID){
+        this.subCurrentIDs.push(currentID);
+    }
+
+    getEquation(numCurrents, result){
+        let equation = Array(numCurrents).fill(0);
+        equation[this.baseCurrentID] = -1;
+        for(let i = 0; i < this.subCurrentIDs.length; i++){
+            equation[this.subCurrentIDs[i]] = 1;
+        }
+        result.push(0);
+        return equation;
     }
 }
