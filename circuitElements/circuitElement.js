@@ -1,10 +1,13 @@
 class CircuitElement {
-  constructor(resistance = 0.001, voltage = 0) {
+  constructor(startPoint = createVector(0, 0), endPoint = createVector(width, height) , resistance = 0.001, voltage = 0) {
     this.resistance = resistance;
     this.voltage = voltage;
     this.currentID = null;
     this.loopID = null;
     this.connections = [];
+
+    this.startPoint = startPoint;
+    this.endPoint = endPoint;
   }
 
   connect(element) {
@@ -39,6 +42,8 @@ class CircuitElement {
   }
 
   renderElement() {
-    text("This is a circuit element. It should not be rendered.", this.startPoint.x, this.startPoint.y);
+    stroke(0);
+    strokeWeight(1);
+    text("This is a circuit element. It should not be rendered.", 10, 10);
   }
 }

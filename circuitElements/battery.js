@@ -1,24 +1,9 @@
 class Battery extends CircuitElement {
 
-    constructor(emf = 0, internalResistance = 0, startPoint, endPoint) {
+    constructor(voltage = 0, internalResistance = 0, startPoint, endPoint) {
         super(startPoint, endPoint);
-        this.emf = emf;
+        this.voltage = voltage;
         this.resistance = internalResistance;
-    }
-
-    updateCurrent(){
-        // Calculate current from total Resistance and globalVoltage
-        // For now, we will pretend that we only have one battery
-        this.current = this.globalVoltage / this.totalResistance();
-
-    }
-
-    updateCurrentIDs(parentID, loopID){
-        if(parentID == -1){
-            super.updateCurrentIDs(0, loopID);
-            return;
-        }
-        mainCircuit.completedLoop(loopID);
     }
 
     potentialDifference() {
