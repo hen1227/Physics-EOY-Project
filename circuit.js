@@ -73,7 +73,7 @@ class Circuit {
     factorInCapacitors(){
         for(let i = 0; i < this.elements.length; i++){
             if(this.elements[i].capacitance){
-                this.loops[this.elements[i].loopID].addCurrent() -= this.elements[i].calculateCurrent(this, 0.05);
+                // this.loops[this.elements[i].loopID].addCurrent() -= this.elements[i].calculateCurrent(this, 0.05);
             }
         }
     }
