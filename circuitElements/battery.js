@@ -12,8 +12,10 @@ class Battery extends CircuitElement {
     }
 
     renderElement() {
-        // This needs to change
-        rect(this.startPoint.x + 20, this.startPoint.y + 20, this.endPoint.x - 20, this.endPoint.y - 20);
+
+        rect(this.startPoint.x, this.startPoint.y, this.endPoint.x, this.endPoint.y);
+        ellipse(this.startPoint.x, this.startPoint.y, 10, 10);
+        ellipse(this.endPoint.x, this.endPoint.y, 10, 10);
     }
     //test
 }

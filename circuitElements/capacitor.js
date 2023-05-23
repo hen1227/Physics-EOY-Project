@@ -3,21 +3,23 @@ class Capacitor extends CircuitElement {
     constructor(capacitance, startPoint, endPoint) {
         super(startPoint, endPoint);
         this.capacitance = capacitance;
-        this.time = -0.05;
+        this.charge = 0;
     }
 
-    calculateCurrent(circuit, dt) {
+    voltageDrop(circuit, dt) {
         // TODO: This should be moved out of here
-        this.time += dt;
+        // in case the same capacitor is in two loops
+        this.charge += circuit.getCurrentByID(this.currentID) * dt;
+
+    
         
-        let emf = circuit.loops[this.loopID].getEmf();
-        let resistance = circuit.loops[this.loopID].getResistance();
+        let voltageDrop = this.charge / this.capacitance;
 
-        let current = emf/resistance * (Math.exp(-1 * (this.time / (resistance * this.capacitance))));
-
-        print("Voltage Drop " + current);
-        print("Loop ID " + this.loopID);
-        return current;
+        // print("current " + circuit.getCurrentByID(this.currentID));
+        // print("charge " + this.charge);
+        // print("Voltage Drop " + voltageDrop);
+        // print("Loop ID " + this.loopID);
+        return voltageDrop;
     }
 
     renderElement() {

@@ -30,6 +30,22 @@ class Circuit {
         this.startingElement.initalElement = false;
     }
 
+    getNearestElement(point, toStartPoint = false, threshold = 30){
+        let clostestElement = null;
+        let closestDistance = threshold;
+        for(let i = 0; i < this.elements.length; i++){
+            let distance = dist(point.x, point.y, this.elements[i].endPoint.x, this.elements[i].endPoint.y);
+            if(toStartPoint){
+                distance = dist(point.x, point.y, this.elements[i].startPoint.x, this.elements[i].startPoint.y);
+            }
+            if(distance < closestDistance){
+                closestDistance = distance;
+                clostestElement = this.elements[i];
+            }
+        }
+        return clostestElement;
+    }
+
     solve() {
         this.clearCalculations();
 
@@ -41,7 +57,6 @@ class Circuit {
         // let currentLaws = [];
         
         // Traverse the circuit starting from the battery
-        // print(this.loops)
         this.startingElement.traverse(0, -1, this);
         this.factorInCapacitors();
         this.factorInInductors();
@@ -52,28 +67,43 @@ class Circuit {
         let numCurrents = this.nextCurrentID();
 
         for(let i = 0; i < this.loops.length; i++){
-            equations.push(this.loops[i].getEquation(numCurrents, results));
+            if(this.loops[i].isClosed){
+                equations.push(this.loops[i].getEquation(numCurrents, results));
+            }else{
+                equations.push(this.loops[i].getZerosEquation(numCurrents, results));
+            }
         }
 
         for(let i = 0; i < this.currentCombos.length; i++){
             equations.push(this.currentCombos[i].getEquation(numCurrents, results));
         }
 
-        print(equations);
-        print(results);
-        
-        // Solve the system of equations using math.js
-        let A = math.matrix(equations);
-        let b = math.matrix(results);
-        // print(A);
-        // print(b);
-        this.currentSolution = math.lusolve(A, b);
+        if( equations.length > 0){
+            print(equations);
+            print(results);
+            
+            // Solve the system of equations using math.js
+            let A = math.matrix(equations);
+            let b = math.matrix(results);
+            // print(A);
+            // print(b);
+
+            // Make sure the matrix is square
+            
+            this.currentSolution = math.lusolve(A, b);
+        }
+    }
+
+    closeLoop(loopID, currentID){
+        print("closing loop " + loopID + " with current " + currentID);
+        this.loops[loopID].isClosed = true;
+
     }
 
     factorInCapacitors(){
         for(let i = 0; i < this.elements.length; i++){
-            if(this.elements[i].capacitance){
-                // this.loops[this.elements[i].loopID].addCurrent() -= this.elements[i].calculateCurrent(this, 0.05);
+            if(this.elements[i].loopID && this.elements[i].currentID && this.elements[i].capacitance){
+                this.loops[this.elements[i].loopID].value -= this.elements[i].voltageDrop(this, 0.05);
             }
         }
     }
@@ -81,18 +111,28 @@ class Circuit {
     factorInInductors(){
         for(let i = 0; i < this.elements.length; i++){
             if(this.elements[i].inductance){
-                this.loops[this.elements[i].loopID].value -= this.elements[i].calculateCurrent(this, 0.05);
+                this.loops[this.elements[i].loopID].value -= this.elements[i].voltageDrop(this, 0.05);
             }
         }
     }
         
 
+    getCurrentByID(id) {
+        // Returns the current solution as an array
+        if (this.currentSolution) {
+            return this.currentSolution.valueOf()[id][0]
+        } else {
+            // print("currentSolutions " + this.currentSolution)
+            return 0;
+        }
+    }
+    
     getCurrents() {
         // Returns the current solution as an array
         if (this.currentSolution) {
             return this.currentSolution.valueOf();
         } else {
-            return null;
+            return [];
         }
     }
 
@@ -137,6 +177,7 @@ class Circuit {
     render(){
         for(let i = 0; i < this.elements.length; i++){
             this.elements[i].renderElement();
+            this.elements[i].renderCurrent(this);
         }
     }
 }
@@ -147,6 +188,9 @@ class LoopEquation{
         this.loopID = loopID;
         this.totalLoopResistance = 0;
         this.totalLoopVoltage = 0;
+        this.isClosed = false;
+
+        this.currents = [];
         
         if (baseLoop == null){
             this.constants = [];
@@ -159,6 +203,7 @@ class LoopEquation{
 
     addResistance(currentID, resistance){
         while(this.constants.length < currentID + 1) this.constants.push(0);
+        if(this.currents.indexOf(currentID) == -1) this.currents.push(currentID);
         this.constants[currentID] += resistance;
         this.totalLoopResistance += resistance;
         // print("Constants " + this.constants)
@@ -175,6 +220,16 @@ class LoopEquation{
             equation[i] = this.constants[i];
         }
         result.push(this.value);
+        return equation;
+    }
+
+    getZerosEquation(numCurrents, result){
+        print("Zeros equation")
+        let equation = Array(numCurrents).fill(0);
+        for(let i = 0; i < this.currents.length; i++){
+            equation[this.currents[i]] = 1;
+        }
+        result.push(0);
         return equation;
     }
 

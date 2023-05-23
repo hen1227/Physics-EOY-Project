@@ -6,7 +6,7 @@ class Inductor extends CircuitElement {
         this.time = -0.05;
     }
 
-    calculateVoltageDrop(circuit, dt) {
+    voltageDrop(circuit, dt) {
         // TODO: This should be moved out of here
         this.time += dt;
         
