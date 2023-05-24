@@ -1,6 +1,5 @@
-
 let startingBattery, resistor1, resistor2;
-
+let button;
 let mainCircuit;
 
 // Called once at the start
@@ -8,8 +7,30 @@ function setup() {
     // p5.js setup function
     createCanvas(800, 600);
     rectMode(CORNERS);
-
     frameRate(24);
+
+    resistorButt = createButton("Resistor");
+    resistorButt.position(650,100);
+    resistorButt.size(100);
+    resistorButt.mousePressed(buttonClicked);
+
+    capacitorButt = createButton("Capacitor");
+    capacitorButt.position(650,200);
+    capacitorButt.size(100);
+    capacitorButt.mousePressed(buttonClicked);
+
+    inductorButt = createButton("Inductor");
+    inductorButt.position(650,300);
+    inductorButt.size(100);
+    inductorButt.mousePressed(buttonClicked);
+    
+    wireButt = createButton("Wire");
+    wireButt.position(650, 400);
+    wireButt.size(100);
+    wireButt.mousePressed(buttonClicked);
+
+
+
 
     // Create the circuit
     mainCircuit = new Circuit();
@@ -17,13 +38,13 @@ function setup() {
     // Create and connect circuit elements
     let battery = new Battery(10, 0, createVector(300, 120), createVector(320, 320));
     // let battery2 = new CircuitElement(0, 1);
-    let resistor0 = new Resistor(10, createVector(100, 20), createVector(200, 120));
-    let wire = new Wire(createVector(100, 320), createVector(200, 420));
-    let resistor1 = new Resistor(5.0, createVector(300, 20), createVector(320, 120));
-    let resistor2 = new Resistor(15, createVector(300, 20), createVector(320, 120));
-    let resistor3 = new Resistor(10, createVector(300, 20), createVector(320, 120));
-    let inductor = new Inductor(0.00001, createVector(100, 120), createVector(200, 220));
-    // let capacitor = new Capacitor(0.02, createVector(100, 220), createVector(200, 320));
+   // let resistor0 = new Resistor(10, createVector(100, 20), createVector(200, 120));
+   // let wire = new Wire(createVector(100, 320), createVector(200, 420));
+   // let resistor1 = new Resistor(5.0, createVector(300, 20), createVector(320, 120));
+    // let resistor2 = new Resistor(15, createVector(300, 20), createVector(320, 120));
+    // let resistor3 = new Resistor(10, createVector(300, 20), createVector(320, 120));
+     // let inductor = new Inductor(0.00001, createVector(100, 120), createVector(200, 220));
+    let capacitor = new Capacitor(0.02, createVector(100, 220), createVector(200, 320));
 
     // battery.connect(resistor0);
     // resistor0.connect(resistor1);
@@ -43,6 +64,7 @@ function setup() {
 
     // Add elements to the circuit
     mainCircuit.addElement(battery);
+    mainCircuit.addElement(capacitor);
     // mainCircuit.addElement(resistor0);
     // mainCircuit.addElement(wire);
     // mainCircuit.addElement(resistor1);
@@ -79,7 +101,7 @@ function draw(){
 let newElement;
 // Built in p5 function
 function mousePressed(){
-    // Add new wire from battery to mouse position
+    // Add new resistor from battery to mouse position
     let nearestElement = mainCircuit.getNearestElement(createVector(mouseX, mouseY));
     if(nearestElement != null){
         newElement = new Resistor(10, nearestElement.endPoint, createVector(mouseX, mouseY));
@@ -104,4 +126,7 @@ function mouseReleased(){
         mainCircuit.addElement(newElement);
     }
     newElement = null;
+}
+function buttonClicked(){
+    console.log("hi");
 }
