@@ -29,9 +29,11 @@ class Resistor extends CircuitElement{
         }
         line(this.endPoint.x - stepX, this.endPoint.y - stepY, this.endPoint.x, this.endPoint.y);
 
-        stroke(0);
+        stroke(255, 0, 0);
         strokeWeight(1);
         ellipse(this.startPoint.x, this.startPoint.y, 7);
+        
+        stroke(0, 0, 255);
         ellipse(this.endPoint.x, this.endPoint.y, 7);
     }
 }

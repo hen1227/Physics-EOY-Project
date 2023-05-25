@@ -5,18 +5,23 @@ class CircuitElement {
     this.currentID = 0;
     this.loopID = 0;
     this.connections = [];
-    this.isInitialized = true;
+    this.verifiedDirection = false;
 
     this.startPoint = startPoint;
     this.endPoint = endPoint;
   }
 
   connect(element) {
-    this.connections.push(element);
+    // print("connecting ");
+    // print(this);
+    // print("to ");
+    // print(element);
+    // print("");
+    this.connections.push(element.copy());
   }
 
   traverse(currentID, loopID, circuit) {
-    print("LoopID: " + loopID);
+    // print("LoopID: " + loopID);
     // print("traversing " + this.resistance + " with currentID " + currentID + " and loopID " + loopID);
     if(!this.initalElement){
       if(loopID == -1){
@@ -63,11 +68,24 @@ class CircuitElement {
     text(this.currentID, posX/2 + this.startPoint.x, posY/2 + this.startPoint.y + 15);
   }
 
+  // TODO: Battery override this to reverse current direction
+  reverseDirection(){
+    print("reversed Direction")
+    let prevStart = this.startPoint;
+    this.startPoint = this.endPoint;
+    this.endPoint = prevStart;
+  }
+
   setEndPoint(newEnd){
     this.endPoint = newEnd;
   }
 
   setStartPoint(newStart){
     this.startPoint = newStart;
+  }
+
+  copy(){
+    return this;
+    // return structuredClone(this);
   }
 }

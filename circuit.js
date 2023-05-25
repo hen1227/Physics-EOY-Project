@@ -79,8 +79,8 @@ class Circuit {
         }
 
         if( equations.length > 0){
-            print(equations);
-            print(results);
+            // print(equations);
+            // print(results);
             
             // Solve the system of equations using math.js
             let A = math.matrix(equations);
@@ -94,8 +94,41 @@ class Circuit {
         }
     }
 
+    
+    verifyDirection(prevElement){
+        if(prevElement == null){
+            for(let i = 0; i < this.elements.length; i++){
+                this.elements[i].verifiedDirection = false;
+                this.elements[i].connections = [];
+            }
+            this.startingElement.verifiedDirection = true;
+            this.verifyDirection(this.startingElement);
+        }else{
+            for(let i = 0; i < this.elements.length; i++){
+                if(this.elements[i] != prevElement && (!this.elements[i].verifiedDirection || this.elements[i].initalElement)){
+                    if(dist(this.elements[i].startPoint.x, this.elements[i].startPoint.y, prevElement.endPoint.x, prevElement.endPoint.y) < SNAP_DISTANCE){
+                        
+                        this.elements[i].startPoint = prevElement.endPoint;
+                        this.elements[i].verifiedDirection = true;
+                        this.verifyDirection(this.elements[i]);
+
+                        prevElement.connect(this.elements[i]);
+                    }
+                    else if(dist(this.elements[i].endPoint.x, this.elements[i].endPoint.y, prevElement.endPoint.x, prevElement.endPoint.y) < SNAP_DISTANCE){
+                        this.elements[i].reverseDirection();
+                        this.elements[i].startPoint = prevElement.endPoint;
+                        this.elements[i].verifiedDirection = true;
+                        this.verifyDirection(this.elements[i]);
+
+                        prevElement.connect(this.elements[i]);
+                    }
+                }
+            }
+        }
+    }
+
     closeLoop(loopID, currentID){
-        print("closing loop " + loopID + " with current " + currentID);
+        // print("closing loop " + loopID + " with current " + currentID);
         this.loops[loopID].isClosed = true;
 
     }
@@ -224,7 +257,7 @@ class LoopEquation{
     }
 
     getZerosEquation(numCurrents, result){
-        print("Zeros equation")
+        // print("Zeros equation")
         let equation = Array(numCurrents).fill(0);
         for(let i = 0; i < this.currents.length; i++){
             equation[this.currents[i]] = 1;
