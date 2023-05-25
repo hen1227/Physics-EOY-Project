@@ -6,7 +6,7 @@ class Resistor extends CircuitElement{
     }
 
         
-    renderElement() { //need to figure out a way to do zig-zags
+    renderElement() { //zig zags done
         stroke(255, 165, 0);
         strokeWeight(4);
         noFill();
