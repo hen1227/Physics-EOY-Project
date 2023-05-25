@@ -57,6 +57,12 @@ class Circuit {
         // let currentLaws = [];
         
         // Traverse the circuit starting from the battery
+        for(let i = 0; i < this.elements.length; i++){
+            this.elements[i].hasTraversed = [];
+            this.elements[i].connections = [];
+        }
+        this.makeConnections();
+
         this.startingElement.traverse(0, -1, this);
         this.factorInCapacitors();
         this.factorInInductors();
@@ -79,8 +85,8 @@ class Circuit {
         }
 
         if( equations.length > 0){
-            // print(equations);
-            // print(results);
+            print(equations);
+            print(results);
             
             // Solve the system of equations using math.js
             let A = math.matrix(equations);
@@ -95,32 +101,25 @@ class Circuit {
     }
 
     
-    verifyDirection(prevElement){
-        if(prevElement == null){
-            for(let i = 0; i < this.elements.length; i++){
-                this.elements[i].verifiedDirection = false;
-                this.elements[i].connections = [];
-            }
-            this.startingElement.verifiedDirection = true;
-            this.verifyDirection(this.startingElement);
-        }else{
-            for(let i = 0; i < this.elements.length; i++){
-                if(this.elements[i] != prevElement && (!this.elements[i].verifiedDirection || this.elements[i].initalElement)){
-                    if(dist(this.elements[i].startPoint.x, this.elements[i].startPoint.y, prevElement.endPoint.x, prevElement.endPoint.y) < SNAP_DISTANCE){
+    makeConnections(){
+        for(let i = 0; i < this.elements.length; i++){
+            for(let j = 0; j < this.elements.length; j++){
+                if(this.elements[i] != this.elements[j]){
+                    if(dist(this.elements[i].startPoint.x, this.elements[i].startPoint.y, this.elements[j].endPoint.x, this.elements[j].endPoint.y) < SNAP_DISTANCE){
                         
-                        this.elements[i].startPoint = prevElement.endPoint;
+                        this.elements[i].startPoint = this.elements[j].endPoint;
                         this.elements[i].verifiedDirection = true;
-                        this.verifyDirection(this.elements[i]);
-
-                        prevElement.connect(this.elements[i]);
+                        
+                        this.elements[j].connect(this.elements[i]);
+                        this.elements[i].connect(this.elements[j]);
                     }
-                    else if(dist(this.elements[i].endPoint.x, this.elements[i].endPoint.y, prevElement.endPoint.x, prevElement.endPoint.y) < SNAP_DISTANCE){
+                    else if(dist(this.elements[i].endPoint.x, this.elements[i].endPoint.y, this.elements[j].endPoint.x, this.elements[j].endPoint.y) < SNAP_DISTANCE){
                         this.elements[i].reverseDirection();
-                        this.elements[i].startPoint = prevElement.endPoint;
+                        this.elements[i].startPoint = this.elements[j].endPoint;
                         this.elements[i].verifiedDirection = true;
-                        this.verifyDirection(this.elements[i]);
 
-                        prevElement.connect(this.elements[i]);
+                        this.elements[j].connect(this.elements[i]);
+                        this.elements[i].connect(this.elements[j]);
                     }
                 }
             }
@@ -130,7 +129,17 @@ class Circuit {
     closeLoop(loopID, currentID){
         // print("closing loop " + loopID + " with current " + currentID);
         this.loops[loopID].isClosed = true;
+    }
 
+    canLoobBeTraversed(traversePath, loopID){
+        print("checking if loop " + loopID + " can be traversed with "+ traversePath +" path" )
+        for(let i = 0; i < traversePath.length; i++){
+            if(this.loops[loopID].hasChild(traversePath[i], this)){
+                print("loop " + loopID + " has child "+ traversePath[i] +" path" )
+                return false;
+            }
+        }
+        return true;
     }
 
     factorInCapacitors(){
@@ -182,6 +191,7 @@ class Circuit {
 
     splitCurrent(currentID, loopID, connections){
 
+        print("Spliting Current " + currentID + " in loop " + loopID + " into " + connections.length + " currents")
         let newCurrentCombo = new CurrentCombo(currentID);
         let nextID;
 
@@ -222,6 +232,7 @@ class LoopEquation{
         this.totalLoopResistance = 0;
         this.totalLoopVoltage = 0;
         this.isClosed = false;
+        this.parentID = -1;
 
         this.currents = [];
         
@@ -229,9 +240,16 @@ class LoopEquation{
             this.constants = [];
             this.value = 0;
         }else{
+            this.parentID = baseLoop.loopID;
             this.constants = baseLoop.constants.map((x) => x);
             this.value = baseLoop.value;
         }
+    }
+
+    hasChild(loopID, circuit){
+        if(this.loopID == loopID) return true;
+        if(this.parentID == -1) return false;
+        return circuit.loops[this.parentID].hasChild(loopID, circuit);
     }
 
     addResistance(currentID, resistance){

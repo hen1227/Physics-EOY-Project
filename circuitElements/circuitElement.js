@@ -5,6 +5,7 @@ class CircuitElement {
     this.currentID = 0;
     this.loopID = 0;
     this.connections = [];
+    this.hasTraversed = [];
     this.verifiedDirection = false;
 
     this.startPoint = startPoint;
@@ -12,17 +13,17 @@ class CircuitElement {
   }
 
   connect(element) {
-    // print("connecting ");
-    // print(this);
-    // print("to ");
-    // print(element);
-    // print("");
     this.connections.push(element.copy());
   }
 
   traverse(currentID, loopID, circuit) {
-    // print("LoopID: " + loopID);
-    // print("traversing " + this.resistance + " with currentID " + currentID + " and loopID " + loopID);
+
+    // print(circuit.canLoobBeTraversed(this.hasTraversed, loopID))
+    // print(circuit.loops[loopID])
+    
+    // if(!circuit.canLoobBeTraversed(this.hasTraversed, loopID)) return;
+    this.hasTraversed.push(loopID);
+
     if(!this.initalElement){
       if(loopID == -1){
         this.initalElement = true;
@@ -40,9 +41,12 @@ class CircuitElement {
         circuit.addVoltageToLoop(this.loopID, this.voltage);
       }
       
+      let newConnections = this.connections.filter((connection) => circuit.canLoobBeTraversed(connection.hasTraversed, connection.loopID));
+      print("newConnections")
+      print(newConnections)
       // Update the equation for Kirchhoff's current law, if necessary
-      if (this.connections.length > 1) {
-        circuit.splitCurrent(this.currentID, this.loopID, this.connections);
+      if (newConnections.length > 1) {
+        circuit.splitCurrent(this.currentID, this.loopID, newConnections);
       }else{
         if(this.connections[0] != null){
           this.connections[0].traverse(this.currentID, this.loopID, circuit);

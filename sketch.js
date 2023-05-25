@@ -80,7 +80,7 @@ function mouseReleased(){
     if(newElement == null) return;
 
     mainCircuit.addElement(newElement);
-    mainCircuit.verifyDirection(null);
+    mainCircuit.makeConnections(null);
 
     newElement = null;
 }
