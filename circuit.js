@@ -73,11 +73,12 @@ class Circuit {
         let numCurrents = this.nextCurrentID();
 
         for(let i = 0; i < this.loops.length; i++){
-            if(this.loops[i].isClosed){
-                equations.push(this.loops[i].getEquation(numCurrents, results));
-            }else{
-                equations.push(this.loops[i].getZerosEquation(numCurrents, results));
-            }
+            // if(this.loops[i].isClosed){
+            equations.push(this.loops[i].getEquation(numCurrents, results));
+            // }
+            // else{
+            //     equations.push(this.loops[i].getZerosEquation(numCurrents, results));
+            // }
         }
 
         for(let i = 0; i < this.currentCombos.length; i++){
@@ -127,15 +128,13 @@ class Circuit {
     }
 
     closeLoop(loopID, currentID){
-        // print("closing loop " + loopID + " with current " + currentID);
+        print("closing loop " + loopID + " with current " + currentID);
         this.loops[loopID].isClosed = true;
     }
 
     canLoobBeTraversed(traversePath, loopID){
-        print("checking if loop " + loopID + " can be traversed with "+ traversePath +" path" )
         for(let i = 0; i < traversePath.length; i++){
-            if(this.loops[loopID].hasChild(traversePath[i], this)){
-                print("loop " + loopID + " has child "+ traversePath[i] +" path" )
+            if(loopID == traversePath[i] || this.loops[loopID].hasChild(traversePath[i])){
                 return false;
             }
         }
@@ -232,7 +231,8 @@ class LoopEquation{
         this.totalLoopResistance = 0;
         this.totalLoopVoltage = 0;
         this.isClosed = false;
-        this.parentID = -1;
+
+        this.parentLoops = [];
 
         this.currents = [];
         
@@ -240,16 +240,16 @@ class LoopEquation{
             this.constants = [];
             this.value = 0;
         }else{
-            this.parentID = baseLoop.loopID;
+            this.parentLoops = baseLoop.parentLoops.map((x) => x);
+            this.parentLoops.push(baseLoop.loopID);
+
             this.constants = baseLoop.constants.map((x) => x);
             this.value = baseLoop.value;
         }
     }
 
-    hasChild(loopID, circuit){
-        if(this.loopID == loopID) return true;
-        if(this.parentID == -1) return false;
-        return circuit.loops[this.parentID].hasChild(loopID, circuit);
+    hasChild(loopID){
+        return this.parentLoops.indexOf(loopID) != -1;
     }
 
     addResistance(currentID, resistance){
@@ -266,22 +266,14 @@ class LoopEquation{
     }
 
     getEquation(numCurrents, result){
-        let equation = Array(numCurrents).fill(0);
-        for(let i = 0; i < this.constants.length; i++){
-            equation[i] = this.constants[i];
+        if(this.isClosed){
+            let equation = Array(numCurrents).fill(0);
+            for(let i = 0; i < this.constants.length; i++){
+                equation[i] = this.constants[i];
+            }
+            result.push(this.value);
+            return equation;
         }
-        result.push(this.value);
-        return equation;
-    }
-
-    getZerosEquation(numCurrents, result){
-        // print("Zeros equation")
-        let equation = Array(numCurrents).fill(0);
-        for(let i = 0; i < this.currents.length; i++){
-            equation[this.currents[i]] = 1;
-        }
-        result.push(0);
-        return equation;
     }
 
     getResistance(){

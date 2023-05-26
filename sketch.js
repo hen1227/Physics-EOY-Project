@@ -16,7 +16,7 @@ function setup() {
     let canvas = createCanvas(window.innerWidth, window.innerWidth/8*6);
     canvas.parent("#canvas");
     rectMode(CORNERS);
-    frameRate(24);
+    frameRate(1);
 
     resistorButt = select("#CreateResistorButton");
     resistorButt.mousePressed(createResistorClicked);
