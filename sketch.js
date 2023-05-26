@@ -7,6 +7,7 @@ const SNAP_DISTANCE = 30;
 let startingBattery, resistor1, resistor2;
 let resistorButt, capacitorButt, inductorButt, wireButt;
 let mainCircuit;
+let nextType;
 
 // Called once at the start
 function setup() {
@@ -29,6 +30,9 @@ function setup() {
     
     wireButt = select("#CreateWireButton");
     wireButt.mousePressed(createWireClicked);
+
+    batteryButt = select("#CreateBatteryButton");
+    batteryButt.mousePressed(createBatteryClicked);
 
 
 
@@ -82,23 +86,36 @@ function mouseReleased(){
     mainCircuit.addElement(newElement);
     mainCircuit.makeConnections(null);
 
-    newElement = null;
+    newElement = null;x
 }
 
 function createResistorClicked(){
     print("Resistor Button Clicked");
+
 
     newElement = new Resistor(10, createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
 }
 
 function createCapacitorClicked(){
     print("Capacitor Button Clicked");
+
+    newElement = new Capacitor(10, createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
 }
 
 function createInductorClicked(){
     print("Inductor Button Clicked");
+
+    newElement = new Inductor(10, createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
 }
 
 function createWireClicked(){
     print("Wire Button Clicked");
+
+    newElement = new Wire(10, createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
+}
+
+function createBatteryClicked(){
+    print("Battery Button Clicked");
+
+    newElement = new Battery(10, createVector(mouseX,mouseY), createVector(mouseX+50,mouseY + 50));
 }
