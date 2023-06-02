@@ -1,59 +1,55 @@
 class Inductor extends CircuitElement {
-    
-    constructor(inductance, startPoint, endPoint) {
-        super(startPoint, endPoint);
-        this.inductance = inductance;
-        this.time = -0.05;
-    }
+  constructor(inductance, startPoint, endPoint) {
+    super(startPoint, endPoint);
+    this.inductance = inductance;
 
-    voltageDrop(circuit, dt) {
-        // TODO: This should be moved out of here
-        this.time += dt;
-        
-        let emf = circuit.loops[this.loopID].getEmf();
-        let resistance = circuit.loops[this.loopID].getResistance();
+    this.prevCurrent = 0;
+  }
 
-        let voltageDrop = emf * Math.exp(-1 * (this.time * (this.inductance / resistance)))
+  value() {
+    return this.inductance + " H";
+  }
 
-        return voltageDrop;
-    }
+  getVoltage() {
+    let current = mainCircuit.getCurrentByID(this.currentID);
+    let dt = 0.5;
+    // TODO: This should be moved out of here
+    let dI = current - this.prevCurrent;
+
+    let L = this.inductance;
+
+    let voltage = (-L * dI / dt);
+    // let voltage = -L * dI / dt;
+    print("voltage " + voltage)
+    print("current " + current)
+    print("dI " + dI)
+    this.prevCurrent = current;
+    return voltage;
+  }
 
   renderElement() {
     const dx = this.endPoint.x - this.startPoint.x;
     const dy = this.endPoint.y - this.startPoint.y;
-    const distance = dist(this.startPoint.x, this.startPoint.y, this.endPoint.x, this.endPoint.y);
     const coilCount = 6 + 2; // number of coils in the inductor
-    const coilWidth = distance / coilCount;
-    const coilHeight = coilWidth * 0.6; // Adjust coil height as desired
 
     const stepX = dx / coilCount;
     const stepY = dy / coilCount;
 
-    for (let i = 0; i < coilCount; i++) {
-      const x1 = this.startPoint.x + i * stepX;
-      const y1 = this.startPoint.y + i * stepY;
+    let angle = atan(dy / dx);
+    print("Angle " + angle)
+    noFill();
 
-      const rotation = atan2(dy, dx);
-      push();
-      translate(x1, y1);
-      rotate(rotation);
-
-      // Draw coil
-      beginShape();
-      for (let angle = 0; angle <= PI; angle += 0.1) {
-        const x = cos(angle) * coilWidth;
-        const y = sin(angle) * coilHeight * ((i % 2 === 0) ? -1 : 1);
-        vertex(x, y);
-      }
-      endShape();
-
-      pop();
+    line(this.startPoint.x, this.startPoint.y, this.startPoint.x + stepX, this.startPoint.y + stepY)
+    for (let i = 1; i < coilCount - 1; i++) {
+      const midX = this.startPoint.x + stepX * (i + 0.5);
+      const midY = this.startPoint.y + stepY * (i + 0.5);
+      arc(midX, midY, (abs(stepX) + abs(stepY)) * (coilCount - 1) / coilCount, (abs(stepY) + abs(stepX)) * (coilCount - 1) / coilCount, angle, angle + PI);
     }
+    line(this.endPoint.x - stepX, this.endPoint.y - stepY, this.endPoint.x, this.endPoint.y);
   }
 }
-    
-    
-    
-    
-    
-    
+
+
+
+
+

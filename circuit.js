@@ -1,307 +1,278 @@
 class Circuit {
     constructor() {
         this.elements = [];
-        this.currentSolution = null;
-        
-        this.loops = [new LoopEquation(0)];
-        this.currentCombos = [];
+        this.paths = [];
+        this.currentMatrix = [];
+        this.voltageMatrix = [];
+        this.currentIDCounter = 0;
+        this.kirchhoffCurrentLaws = [];
+        this.deadEndEquations = [];
 
-        this.startingElement = null;
+        this.currentSolution = [];
 
-        this.latestCurrent = 1;
+        this.prevSolution = [];
     }
 
     addElement(element) {
+        element.currentID = this.currentIDCounter;
+        this.currentIDCounter++;
+        print("Added element", element);
         this.elements.push(element);
     }
 
-    clearCalculations() {
-        
-        this.loops = [new LoopEquation(0)];
-        this.currentCombos = [];
-
-        this.latestCurrent = 1;
-
-        this.findStartingElement();
-    }
-
-    findStartingElement(){
-        this.startingElement = this.elements[0];
-        this.startingElement.initalElement = false;
-    }
-
-    getNearestElement(point, toStartPoint = false, threshold = 30){
-        let clostestElement = null;
-        let closestDistance = threshold;
-        for(let i = 0; i < this.elements.length; i++){
-            let distance = dist(point.x, point.y, this.elements[i].endPoint.x, this.elements[i].endPoint.y);
-            if(toStartPoint){
-                distance = dist(point.x, point.y, this.elements[i].startPoint.x, this.elements[i].startPoint.y);
-            }
-            if(distance < closestDistance){
-                closestDistance = distance;
-                clostestElement = this.elements[i];
-            }
-        }
-        return clostestElement;
-    }
-
-    solve() {
-        this.clearCalculations();
-
-        // Initialize the equations and results arrays with a size of elements.length * 2
-        // This is because in the worst case, each element could be in a different loop
-
-        // let equations = Array(this.elements.length * 2).fill(0).map(() => Array(this.elements.length * 2).fill(0));
-        // let results = Array(this.elements.length * 2).fill(0);
-        // let currentLaws = [];
-        
-        // Traverse the circuit starting from the battery
-        for(let i = 0; i < this.elements.length; i++){
-            this.elements[i].hasTraversed = [];
-            this.elements[i].connections = [];
-        }
-        this.makeConnections();
-
-        this.startingElement.traverse(0, -1, this);
-        this.factorInCapacitors();
-        this.factorInInductors();
-
-        let equations = [];
-        let results = [];
-
-        let numCurrents = this.nextCurrentID();
-
-        for(let i = 0; i < this.loops.length; i++){
-            // if(this.loops[i].isClosed){
-            equations.push(this.loops[i].getEquation(numCurrents, results));
-            // }
-            // else{
-            //     equations.push(this.loops[i].getZerosEquation(numCurrents, results));
-            // }
-        }
-
-        for(let i = 0; i < this.currentCombos.length; i++){
-            equations.push(this.currentCombos[i].getEquation(numCurrents, results));
-        }
-
-        if( equations.length > 0){
-            print(equations);
-            print(results);
-            
-            // Solve the system of equations using math.js
-            let A = math.matrix(equations);
-            let b = math.matrix(results);
-            // print(A);
-            // print(b);
-
-            // Make sure the matrix is square
-            
-            this.currentSolution = math.lusolve(A, b);
-        }
-    }
-
-    
-    makeConnections(){
-        for(let i = 0; i < this.elements.length; i++){
-            for(let j = 0; j < this.elements.length; j++){
-                if(this.elements[i] != this.elements[j]){
-                    if(dist(this.elements[i].startPoint.x, this.elements[i].startPoint.y, this.elements[j].endPoint.x, this.elements[j].endPoint.y) < SNAP_DISTANCE){
-                        
+    // Connects all elements in both directions if they are close enough
+    makeConnections() {
+        for (let i = 0; i < this.elements.length; i++) {
+            for (let j = 0; j < this.elements.length; j++) {
+                if (this.elements[i] != this.elements[j]) {
+                    if (this.elements[i].startPoint.dist(this.elements[j].endPoint) < SNAP_DISTANCE) {
                         this.elements[i].startPoint = this.elements[j].endPoint;
-                        this.elements[i].verifiedDirection = true;
-                        
-                        this.elements[j].connect(this.elements[i]);
-                        this.elements[i].connect(this.elements[j]);
                     }
-                    else if(dist(this.elements[i].endPoint.x, this.elements[i].endPoint.y, this.elements[j].endPoint.x, this.elements[j].endPoint.y) < SNAP_DISTANCE){
-                        this.elements[i].reverseDirection();
-                        this.elements[i].startPoint = this.elements[j].endPoint;
-                        this.elements[i].verifiedDirection = true;
+                    else if (this.elements[i].endPoint.dist(this.elements[j].startPoint) < SNAP_DISTANCE) {
+                        this.elements[i].endPoint = this.elements[j].startPoint;
+                    }
+                    else if (this.elements[i].endPoint.dist(this.elements[j].endPoint) < SNAP_DISTANCE) {
+                        this.elements[i].endPoint = this.elements[j].endPoint;
+                    }
+                    else if (this.elements[i].startPoint.dist(this.elements[j].startPoint) < SNAP_DISTANCE) {
+                        this.elements[i].startPoint = this.elements[j].startPoint;
+                    }
 
-                        this.elements[j].connect(this.elements[i]);
-                        this.elements[i].connect(this.elements[j]);
-                    }
+                    this.elements[i].connect(this.elements[j]);
+                    this.elements[j].connect(this.elements[i]);
                 }
             }
         }
     }
 
-    closeLoop(loopID, currentID){
-        print("closing loop " + loopID + " with current " + currentID);
-        this.loops[loopID].isClosed = true;
+    clear() {
+        for (let i = 0; i < this.elements.length; i++) {
+            this.elements[i].clear();
+        }
+        this.makeConnections();
+
+        this.paths = [];
+        this.currentMatrix = [];
+        this.voltageMatrix = [];
+        this.kirchhoffCurrentLaws = [];
+        this.deadEndEquations = [];
+        this.prevSolution = this.currentSolution;
+        this.currentSolution = [];
     }
 
-    canLoobBeTraversed(traversePath, loopID){
-        for(let i = 0; i < traversePath.length; i++){
-            if(loopID == traversePath[i] || this.loops[loopID].hasChild(traversePath[i])){
-                return false;
+
+    // Locates all of the unique, closed paths through the circuit.
+    // Fairly confindent this part works fine.
+    findPaths(startElement, visited = [], path = [], isPositive = true) {
+
+        if (startElement != null) {
+            visited[startElement.currentID] = true;
+            path.push(startElement);
+        }
+
+        if (startElement != null && startElement.isStartElement) {
+            // print("Path found!")
+            this.paths.push([...path]);
+        } else {
+            if (startElement == null) {
+                startElement = this.elements[0];
+                startElement.isStartElement = true;
+                isPositive = false;
+            }
+
+            let hasUnvisitedConnections = false;
+
+            let nextConnections = isPositive ? startElement.positiveConnections : startElement.negativeConnections;
+
+            // Connect to each unvisited connecting element
+            for (let i = 0; i < nextConnections.length; i++) {
+                let nextElement = nextConnections[i];
+                let nextDirection = nextElement.positiveConnections.indexOf(startElement) == -1;
+
+                if (!visited[nextElement.currentID] || nextElement.isStartElement) {
+
+                    hasUnvisitedConnections = true;
+                    this.findPaths(nextElement, visited, path, nextDirection);
+                }
+            }
+
+            // The element has no connections, dead end.
+            if (!hasUnvisitedConnections) {
+                print("Dead End in current", startElement.currentID)
+                let deadEndRow = Array(this.currentIDCounter).fill(0);
+                deadEndRow[startElement.currentID] = 1;
+                this.deadEndEquations.push(deadEndRow);
             }
         }
-        return true;
+
+        path.pop();
+        visited[startElement.currentID] = false;
     }
 
-    factorInCapacitors(){
-        for(let i = 0; i < this.elements.length; i++){
-            if(this.elements[i].loopID && this.elements[i].currentID && this.elements[i].capacitance){
-                this.loops[this.elements[i].loopID].value -= this.elements[i].voltageDrop(this, 0.05);
-            }
-        }
-    }
+    // The main function that calcualtes the current in each element.
+    solve() {
+        this.clear();
 
-    factorInInductors(){
-        for(let i = 0; i < this.elements.length; i++){
-            if(this.elements[i].inductance){
-                this.loops[this.elements[i].loopID].value -= this.elements[i].voltageDrop(this, 0.05);
+        let numberOfElements = this.currentIDCounter;
+
+        // Find all paths in the circuit.
+        this.findPaths(null, Array(numberOfElements).fill(false), []);
+        print("elements: ", this.elements);
+        print('Paths:', this.paths);
+
+        // Build the current and voltage matrices.
+        for (let i = 0; i < this.paths.length; i++) {
+            let path = this.paths[i];
+            let currentRow = Array(numberOfElements).fill(0);
+            let voltageRow = 0;
+
+            for (let j = 0; j < path.length; j++) {
+                let element = path[j];
+                let isElementPositive = true
+                let prevElement = (j > 0) ? path[j - 1] : path[path.length - 1]
+                isElementPositive = element.positiveConnections.indexOf(prevElement) != -1;
+
+                currentRow[element.currentID] += element.resistance * (isElementPositive ? 1 : -1);
+                voltageRow += element.getVoltage(isElementPositive) * (isElementPositive ? 1 : -1);
+
+                if (element.isStartElement) continue;
+
+                // Calcuates the Kirchoff's current laws for each element.
+                // There is an issue here that prevents it from working with elements
+                // in parallel due to the changing directions of the currents not
+                // accurately being accounted for.
+
+                // If current splits at this element, add to Kirchhoff's current law.
+                if (element.positiveConnections.length > 1) {
+                    let kirchhoffCurrentLaw = new KirchhoffCurrentLaw(element);
+                    for (let k = 0; k < element.positiveConnections.length; k++) {
+
+
+                        // It is connected to the subelement's positive terminal
+                        let isPositive = element.positiveConnections[k].positiveConnections.indexOf(element) != -1
+
+                        kirchhoffCurrentLaw.addCurrent(element.positiveConnections[k].currentID, isPositive ? -1 : 1)
+                    }
+
+                    this.kirchhoffCurrentLaws.push(kirchhoffCurrentLaw);
+                }
+                else if (element.positiveConnections.length == 1) {
+
+                    // It is connected to the subelement's positive terminal
+                    let isPositive = element.positiveConnections[0].positiveConnections.indexOf(element) != -1
+
+                    let kirchhoffCurrentLaw = new KirchhoffCurrentLaw(element);
+
+                    kirchhoffCurrentLaw.addCurrent(element.positiveConnections[0].currentID, isPositive ? -1 : 1)
+
+                    this.kirchhoffCurrentLaws.push(kirchhoffCurrentLaw);
+                }
+
+                if (element.negativeConnections.length > 1) {
+                    let kirchhoffCurrentLaw = new KirchhoffCurrentLaw(element);
+
+                    for (let k = 0; k < element.negativeConnections.length; k++) {
+
+                        // It is connected to the subelement's positive terminal
+                        let isPositive = element.negativeConnections[k].positiveConnections.indexOf(element) != -1
+
+                        //                                                                      Swapped -1 and 1 from positive connections
+                        kirchhoffCurrentLaw.addCurrent(element.negativeConnections[k].currentID, isPositive ? 1 : -1)
+                    }
+                    this.kirchhoffCurrentLaws.push(kirchhoffCurrentLaw);
+                }
+                else if (element.negativeConnections.length == 1) {
+
+                    // It is connected to the subelement's positive terminal
+                    let isPositive = element.negativeConnections[0].positiveConnections.indexOf(element) != -1
+
+                    let kirchhoffCurrentLaw = new KirchhoffCurrentLaw(element);
+                    //                                                                      Swapped -1 and 1 from positive connections
+                    kirchhoffCurrentLaw.addCurrent(element.negativeConnections[0].currentID, isPositive ? 1 : -1)
+
+                    this.kirchhoffCurrentLaws.push(kirchhoffCurrentLaw);
+                }
             }
+
+            this.currentMatrix.push(currentRow);
+            this.voltageMatrix.push(voltageRow);
+        }
+
+        for (let i = 0; i < this.kirchhoffCurrentLaws.length; i++) {
+            this.currentMatrix.push(this.kirchhoffCurrentLaws[i].getEquation(numberOfElements));
+            this.voltageMatrix.push(0);
+        }
+
+        for (let i = 0; i < this.deadEndEquations.length; i++) {
+            print("adding dead end equation", this.deadEndEquations[i])
+            this.currentMatrix.push(this.deadEndEquations[i]);
+            this.voltageMatrix.push(0);
+        }
+
+
+        print('Current matrix:', this.currentMatrix);
+        print('Voltage matrix:', this.voltageMatrix);
+        // Solve the system of linear equations.
+        if (this.currentMatrix.length > 0 && this.voltageMatrix.length >= this.currentMatrix[0].length) {
+
+            // ¯\_(ツ)_/¯  its linear algebra ig
+            // Solves over-determined maxtrix
+            // 
+
+            let A = this.currentMatrix;
+            let b = this.voltageMatrix;
+
+            // Perform Singular Value Decomposition
+            let svd = numeric.svd(A);
+
+            // Calculate pseudoinverse of A: A_pinv = V * D_pinv * U.T
+            let D_pinv = numeric.diag(svd.S.map(s => (s === 0 ? 0 : 1 / s)));
+            let A_pinv = numeric.dot(numeric.dot(svd.V, D_pinv), numeric.transpose(svd.U));
+
+            // Solve the system: x = A_pinv * b
+            this.currentSolution = numeric.dot(A_pinv, b);
+
+
+            // this.currentSolution = math.lusolve(this.currentMatrix, this.voltageMatrix);
+            console.log('Solution:', this.currentSolution);
         }
     }
-        
 
     getCurrentByID(id) {
         // Returns the current solution as an array
-        if (this.currentSolution) {
-            return this.currentSolution.valueOf()[id][0]
+        if (this.prevSolution && this.prevSolution.length > id) {
+            return this.prevSolution[id];
         } else {
-            // print("currentSolutions " + this.currentSolution)
             return 0;
         }
     }
-    
-    getCurrents() {
-        // Returns the current solution as an array
-        if (this.currentSolution) {
-            return this.currentSolution.valueOf();
-        } else {
-            return [];
-        }
-    }
 
-    addResistanceToLoop(currentID, loopID, resistance){
-        // print(loopID)
-        // print(this.loops)
-        // print("adding " + resistance + " resistance to current (" + currentID + ") in loop (" + loopID + ")")
-        this.loops[loopID].addResistance(currentID, resistance);
-    }
-
-    addVoltageToLoop(loopID, voltage){
-        this.loops[loopID].addVoltage(voltage);
-    }
-
-    splitCurrent(currentID, loopID, connections){
-
-        print("Spliting Current " + currentID + " in loop " + loopID + " into " + connections.length + " currents")
-        let newCurrentCombo = new CurrentCombo(currentID);
-        let nextID;
-
-        for(let i = 1; i < connections.length; i++){
-            nextID = this.nextCurrentID();
-            let nextLoopID = this.loops.length;
-            this.loops.push(new LoopEquation(nextLoopID, this.loops[loopID]));
-            connections[i].traverse(nextID, nextLoopID, this);
-            newCurrentCombo.addCurrent(nextID);
-        }
-
-        nextID = this.nextCurrentID()
-        connections[0].traverse(nextID, loopID, this);
-        
-        newCurrentCombo.addCurrent(nextID);
-
-        this.currentCombos.push(newCurrentCombo);
-    }
-
-
-    nextCurrentID(){
-        return this.latestCurrent++;
-    }
-
-
-    render(){
-        for(let i = 0; i < this.elements.length; i++){
+    // Show all elements connected to circuit
+    render() {
+        for (let i = 0; i < this.elements.length; i++) {
             this.elements[i].renderElement();
             this.elements[i].renderCurrent(this);
+            this.elements[i].renderArrow(this);
         }
     }
 }
 
+// Handles the data for Kirchhoff's current law equations
+class KirchhoffCurrentLaw {
 
-class LoopEquation{    
-    constructor(loopID, baseLoop){
-        this.loopID = loopID;
-        this.totalLoopResistance = 0;
-        this.totalLoopVoltage = 0;
-        this.isClosed = false;
-
-        this.parentLoops = [];
-
-        this.currents = [];
-        
-        if (baseLoop == null){
-            this.constants = [];
-            this.value = 0;
-        }else{
-            this.parentLoops = baseLoop.parentLoops.map((x) => x);
-            this.parentLoops.push(baseLoop.loopID);
-
-            this.constants = baseLoop.constants.map((x) => x);
-            this.value = baseLoop.value;
-        }
+    constructor(startElement) {
+        this.constants = [];
+        while (this.constants.length < startElement.currentID) this.constants.push(0);
+        this.constants[startElement.currentID] = -1;
     }
 
-    hasChild(loopID){
-        return this.parentLoops.indexOf(loopID) != -1;
+    addCurrent(currentID, direction) {
+        while (this.constants.length < currentID) this.constants.push(0);
+        this.constants[currentID] = direction;
     }
 
-    addResistance(currentID, resistance){
-        while(this.constants.length < currentID + 1) this.constants.push(0);
-        if(this.currents.indexOf(currentID) == -1) this.currents.push(currentID);
-        this.constants[currentID] += resistance;
-        this.totalLoopResistance += resistance;
-        // print("Constants " + this.constants)
-    }
-
-    addVoltage(voltage){
-        this.value += voltage;
-        this.totalLoopVoltage += voltage;
-    }
-
-    getEquation(numCurrents, result){
-        if(this.isClosed){
-            let equation = Array(numCurrents).fill(0);
-            for(let i = 0; i < this.constants.length; i++){
-                equation[i] = this.constants[i];
-            }
-            result.push(this.value);
-            return equation;
-        }
-    }
-
-    getResistance(){
-        return this.totalLoopResistance;
-    }
-
-    getEmf(){
-        return this.totalLoopVoltage;
-    }
-}
-
-class CurrentCombo {
-    constructor(baseCurrentID){
-        this.baseCurrentID = baseCurrentID;
-        this.subCurrentIDs = [];
-    }
-
-    addCurrent(currentID){
-        this.subCurrentIDs.push(currentID);
-    }
-
-    getEquation(numCurrents, result){
-        let equation = Array(numCurrents).fill(0);
-        equation[this.baseCurrentID] = -1;
-        for(let i = 0; i < this.subCurrentIDs.length; i++){
-            equation[this.subCurrentIDs[i]] = 1;
-        }
-        result.push(0);
-        return equation;
+    getEquation(ofLength) {
+        while (this.constants.length < ofLength) this.constants.push(0);
+        return this.constants;
     }
 }

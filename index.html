@@ -1,12 +1,17 @@
 <!DOCTYPE html>
+
 <head>
-<title>Physics End Of Year Project</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <title>Physics End Of Year Project</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
 
     <!-- Using Math.js Library to help with matrix decomposistion and solving -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.4.2/math.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.4.2/math.min.js"></script> -->
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- 
         To run this, in chrome go to the actual file path
@@ -14,20 +19,25 @@
         if need be, go to file:/// and navigate to the file
     -->
 
-    <button id="CreateResistorButton">Create Resistor</button>
-    <button id="CreateCapacitorButton">Create Capacitor</button>
-    <button id="CreateInductorButton">Create Inductor</button>
-    <button id="CreateWireButton">Create Wire</button>
-    <button id="CreateBatteryButton">Create Battery</button>
-    <div id="canvas">
+    <div class="container">
+        <button id="CreateResistorButton">Create Resistor</button>
+        <button id="CreateCapacitorButton">Create Capacitor</button>
+        <!-- <button id="CreateInductorButton">Create Inductor</button> -->
+        <button id="CreateWireButton">Create Wire</button>
+        <button id="CreateBatteryButton">Create Battery</button>
+        <p class="hide-when-small">New Element Value</p>
+        <input class="hide-when-small" type="range" id="new-element-value" min="0.1" max="10" value="1" step="0.1">
+        <div id="canvas">
+        </div>
     </div>
     <script src="sketch.js"></script>
     <script src="circuit.js"></script>
-    <script src="circuitElements/circuitElement.js"></script>
+    <script src="circuitElement.js"></script>
     <script src="circuitElements/wire.js"></script>
     <script src="circuitElements/battery.js"></script>
     <script src="circuitElements/inductor.js"></script>
     <script src="circuitElements/resistor.js"></script>
     <script src="circuitElements/capacitor.js"></script>
 </body>
+
 </html>

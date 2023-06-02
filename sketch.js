@@ -3,8 +3,8 @@
 const SNAP_DISTANCE = 30;
 
 
-//
-let startingBattery, resistor1, resistor2;
+// 
+let startingBattery, resistor1, resistor2, valueSlider;
 let resistorButt, capacitorButt, inductorButt, wireButt;
 let mainCircuit;
 let nextType;
@@ -12,12 +12,14 @@ let nextType;
 // Called once at the start
 function setup() {
     // p5.js setup function
-    
-    
-    let canvas = createCanvas(window.innerWidth, window.innerWidth/8*6);
-    canvas.parent("#canvas");
+
+    let canvas = createCanvas(window.innerWidth, window.innerWidth / 8 * 6);
+    canvas.parent("#canvas"); // Allows canvas object to be centered in div
     rectMode(CORNERS);
-    frameRate(1);
+    frameRate(24);
+
+
+    // HTML buttons:
 
     resistorButt = select("#CreateResistorButton");
     resistorButt.mousePressed(createResistorClicked);
@@ -25,9 +27,9 @@ function setup() {
     capacitorButt = select("#CreateCapacitorButton");
     capacitorButt.mousePressed(createCapacitorClicked);
 
-    inductorButt = select("#CreateInductorButton");
-    inductorButt.mousePressed(createInductorClicked);
-    
+    // inductorButt = select("#CreateInductorButton");
+    // inductorButt.mousePressed(createInductorClicked);
+
     wireButt = select("#CreateWireButton");
     wireButt.mousePressed(createWireClicked);
 
@@ -35,87 +37,97 @@ function setup() {
     batteryButt.mousePressed(createBatteryClicked);
 
 
+    valueSlider = select("#new-element-value");
+    valueSlider.mousePressed(valueSliderChanged);
+
+
 
     // Create the circuit
     mainCircuit = new Circuit();
 
     // Create and connect circuit elements
-    let battery = new Battery(10, 0, createVector(300, 120), createVector(320, 320));
+    let battery = new Battery(10, 0, createVector(200, 150), createVector(200, 400));
     // Add elements to the circuit
     mainCircuit.addElement(battery);
-
-
 }
 
 // Called Every frame
-function draw(){
+function draw() {
     background(245);
+    text("Value: " + valueSlider.value(), width / 2 - 80, 10);
 
-     // Solve the circuit
-     mainCircuit.solve();
+    // Solve the circuit
+    mainCircuit.solve();
+    mainCircuit.render();
 
 
-     mainCircuit.render();
 
-     if(newElement != null){
-        // newElement.startPoint = createVector(mouseX, mouseY);
+    if (newElement != null) {
         newElement.setEndPoint(createVector(mouseX, mouseY));
         newElement.renderElement();
-     }
+    }
 }
 
+// Adding elements to circuit:
 
 let newElement;
 
-function mousePressed(){
-    if(newElement == null) return;
-    if(mouseX > width || mouseX < 0 || mouseY < 0  || mouseY > height) return;
+function mousePressed() {
+    if (newElement == null) return;
+    if (mouseX > width || mouseX < 0 || mouseY < 0 || mouseY > height) return;
     newElement.setStartPoint(createVector(mouseX, mouseY));
-    
+
 }
 
-function mouseDragged(){
-    if(newElement == null) return;
+function mouseDragged() {
+    if (newElement == null) return;
     newElement.setEndPoint(createVector(mouseX, mouseY));
-}  
+}
 
-function mouseReleased(){
-    if(mouseX > width || mouseX < 0 || mouseY < 0  || mouseY > height) return;
-    if(newElement == null) return;
+function mouseReleased() {
+    if (mouseX > width || mouseX < 0 || mouseY < 0 || mouseY > height) return;
+    if (newElement == null) return;
 
     mainCircuit.addElement(newElement);
+    // newElement.align();
     mainCircuit.makeConnections(null);
 
-    newElement = null;x
+    newElement = null;
 }
 
-function createResistorClicked(){
+function createResistorClicked() {
     print("Resistor Button Clicked");
 
 
-    newElement = new Resistor(10, createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
+    newElement = new Resistor(valueSlider.value(), createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
 }
 
-function createCapacitorClicked(){
+function createCapacitorClicked() {
     print("Capacitor Button Clicked");
 
-    newElement = new Capacitor(10, createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
+    newElement = new Capacitor(valueSlider.value(), createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
 }
 
-function createInductorClicked(){
+function createInductorClicked() {
     print("Inductor Button Clicked");
 
-    newElement = new Inductor(10, createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
+    newElement = new Inductor(valueSlider.value(), createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
 }
 
-function createWireClicked(){
+function createWireClicked() {
     print("Wire Button Clicked");
 
-    newElement = new Wire(10, createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
+    newElement = new Wire(createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
 }
 
-function createBatteryClicked(){
+function createBatteryClicked() {
     print("Battery Button Clicked");
 
-    newElement = new Battery(10, createVector(mouseX,mouseY), createVector(mouseX+50,mouseY + 50));
+    newElement = new Battery(valueSlider.value(), 0, createVector(mouseX, mouseY), createVector(mouseX + 50, mouseY + 50));
+}
+
+// Unused
+function valueSliderChanged() {
+    // if (newElement == null) return;
+    // newElement.setValue(valueSlider.value());
 }

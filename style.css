@@ -1,0 +1,32 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #cdcdcd;
+}
+
+button {
+    padding: 10px;
+    margin: 5px auto;
+    margin: auto 0.5em;
+    display: inline-block;
+    /* float: left; */
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #cdcdcd;
+
+
+    display: block;
+    justify-content: center;
+    text-align: center;
+    float: left;
+}
+
+#canvas {
+    text-align: center;
+}
