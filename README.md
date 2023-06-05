@@ -27,13 +27,13 @@ Figure 1.
 
 For example, in the circuit in Figure 1, call the current through the battery . The currents through R1 and R2 are and respectively. This circuit yields the following matrix:
 
-[[0, R1, 0], [ V,
+[[0, R1, 0],  =  [ V,
 
-[0, 0, R2], = V,
+[0, 0, R2],   =    V,
 
-[1, -1, -1] 0,
+[1, -1, -1]   =    0,
 
-[-1, 1, 1]] 0]
+[-1, 1, 1]]   =    0]
 
 The values in the matrix are the _coefficients_ of the current values we are calculating, and in the other matrix with the "answers" includes the voltage calculated separately using the EMF of batteries involved. For example, The equation [-1, 1, 1] = 0 represents . Also note that this equation is redundant. This is because the intersection is met in both loops and accounted for twice, however this system of equations is still solvable, and as long as the equations don't contradict each other, we'll get the same result.
 
