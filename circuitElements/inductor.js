@@ -1,5 +1,7 @@
 class Inductor extends CircuitElement {
+  //While this class is currently unused, the framework remains. This is supposed to handle the calculations and representations of a single inductor. 
   constructor(inductance, startPoint, endPoint) {
+    //You can define an inductance, startPoint, and endpoint for any inductor that you create. 
     super(startPoint, endPoint);
     this.inductance = inductance;
 
@@ -7,13 +9,14 @@ class Inductor extends CircuitElement {
   }
 
   value() {
+    //returns value + units (Henries)
     return this.inductance + " H";
   }
 
   getVoltage() {
+    //This doesn't quite work, but it's supposed to give the voltage across an inductor. Note that it will change over time using dt and the framerate. 
     let current = mainCircuit.getCurrentByID(this.currentID);
     let dt = 0.5;
-    // TODO: This should be moved out of here
     let dI = current - this.prevCurrent;
 
     let L = this.inductance;
@@ -28,6 +31,7 @@ class Inductor extends CircuitElement {
   }
 
   renderElement() {
+    //While this doesn't look great, this crudely represents an inductor for our sketch.js file. 
     const dx = this.endPoint.x - this.startPoint.x;
     const dy = this.endPoint.y - this.startPoint.y;
     const coilCount = 6 + 2; // number of coils in the inductor

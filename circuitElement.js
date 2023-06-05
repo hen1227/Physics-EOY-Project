@@ -1,6 +1,6 @@
 
 // Parent class for all circiut elements
-
+//This means that every other circuit element class inherits the constructor and methods through "super" calls 
 class CircuitElement {
   constructor(startPoint = createVector(0, 0), endPoint = createVector(width, height), resistance = 0.00001, voltage = 0) {
     // Circuit properties

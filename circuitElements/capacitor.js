@@ -1,22 +1,21 @@
 class Capacitor extends CircuitElement {
-
+    //This is the capacitor class, representing a single capacitor. 
     constructor(capacitance, startPoint, endPoint) {
         super(startPoint, endPoint);
         this.capacitance = capacitance;
         this.charge = 0;
     }
 
-    // Value + units
+    // Value + units of a capacitor, in this case farads 
     value() {
         return this.capacitance + " F";
     }
 
-    getVoltage(isPositive) {
+    getVoltage(isPositive) { //Gives the voltage of a capacitor with the parameter of whether or not it is positive
         let circuit = mainCircuit;
         let dt = 1 / 24;
 
-        // TODO: This should be moved out of here
-        // in case the same capacitor is in two loops, otherwise the charge will be counted twice
+        // The line below is present in case the same capacitor is in two loops, otherwise the charge will be counted twice
         this.charge += abs(circuit.getCurrentByID(this.currentID) * dt);
 
         let voltageDrop = this.charge / this.capacitance;
@@ -24,6 +23,7 @@ class Capacitor extends CircuitElement {
     }
 
     renderElement() {
+        //Method for handing the visuals which we will use later in the sketch.js class
         const dx = this.endPoint.x - this.startPoint.x;
         const dy = this.endPoint.y - this.startPoint.y;
         const seperation = Math.pow(this.capacitance, 0.5) * 0.1 + 0.1;

@@ -1,15 +1,18 @@
 class Resistor extends CircuitElement {
-
+    //This is the class for a resistor
     constructor(resistance, startPoint, endPoint) {
+        //Resistors have a resistance, a startpoint, and an endpoint 
         super(startPoint, endPoint);
         this.resistance = resistance;
     }
 
     value() {
+        //returns value + (ohm symbol)
         return this.resistance + " \u03A9";
     }
 
-    renderElement() { //zig zags done
+    renderElement() { 
+        //This renders a resistor using zig zags (as is typical for a circuit diagram) from startpoint to endpoint  
         stroke(255, 165, 0);
         strokeWeight(4);
         noFill();
@@ -30,11 +33,13 @@ class Resistor extends CircuitElement {
             line(x1, y1, midX, midY);
             line(midX, midY, x2, y2);
         }
+        //steps across the resistor to create zig-zags
         line(this.endPoint.x - stepX, this.endPoint.y - stepY, this.endPoint.x, this.endPoint.y);
 
         stroke(255, 0, 0);
         strokeWeight(1);
         ellipse(this.startPoint.x, this.startPoint.y, 7);
+        //creates zones at the edge for "snapping" effect
 
         stroke(0, 0, 255);
         ellipse(this.endPoint.x, this.endPoint.y, 7);

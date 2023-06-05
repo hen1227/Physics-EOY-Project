@@ -1,5 +1,8 @@
 class Circuit {
+    //This class represents an entire circuit. 
+    //It handles the calculations of current as well as connections between various elements
     constructor() {
+        //A constructor for a circuit has no parameters and begins empty. 
         this.elements = [];
         this.paths = [];
         this.currentMatrix = [];
@@ -14,6 +17,7 @@ class Circuit {
     }
 
     addElement(element) {
+        //simply adds the element passed as a parameter to the circuit
         element.currentID = this.currentIDCounter;
         this.currentIDCounter++;
         print("Added element", element);
@@ -62,6 +66,7 @@ class Circuit {
 
 
     // Locates all of the unique, closed paths through the circuit.
+    //This will later allow us to create the equations as mentioned in the README
     // Fairly confindent this part works fine.
     findPaths(startElement, visited = [], path = [], isPositive = true) {
 
@@ -176,7 +181,7 @@ class Circuit {
                         // It is connected to the subelement's positive terminal
                         let isPositive = element.negativeConnections[k].positiveConnections.indexOf(element) != -1
 
-                        //                                                                      Swapped -1 and 1 from positive connections
+                        //Swapped -1 and 1 from positive connections
                         kirchhoffCurrentLaw.addCurrent(element.negativeConnections[k].currentID, isPositive ? 1 : -1)
                     }
                     this.kirchhoffCurrentLaws.push(kirchhoffCurrentLaw);
@@ -187,7 +192,7 @@ class Circuit {
                     let isPositive = element.negativeConnections[0].positiveConnections.indexOf(element) != -1
 
                     let kirchhoffCurrentLaw = new KirchhoffCurrentLaw(element);
-                    //                                                                      Swapped -1 and 1 from positive connections
+                    // Swapped -1 and 1 from positive connections
                     kirchhoffCurrentLaw.addCurrent(element.negativeConnections[0].currentID, isPositive ? 1 : -1)
 
                     this.kirchhoffCurrentLaws.push(kirchhoffCurrentLaw);
@@ -216,7 +221,7 @@ class Circuit {
         if (this.currentMatrix.length > 0 && this.voltageMatrix.length >= this.currentMatrix[0].length) {
 
             // ¯\_(ツ)_/¯  its linear algebra ig
-            // Solves over-determined maxtrix
+            // Solves over-determined matrix
             // 
 
             let A = this.currentMatrix;

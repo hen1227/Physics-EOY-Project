@@ -1,13 +1,13 @@
 // global constants 
-
 const SNAP_DISTANCE = 30;
-
+//This is the sketch.js file, which is where the code for handling the visuals of the circuit is implemented. 
 
 // 
 let startingBattery, resistor1, resistor2, valueSlider;
 let resistorButt, capacitorButt, inductorButt, wireButt;
 let mainCircuit;
 let nextType;
+//This instantiates some test items as well as the buttons and sliders
 
 // Called once at the start
 function setup() {
@@ -19,8 +19,7 @@ function setup() {
     frameRate(24);
 
 
-    // HTML buttons:
-
+    // HTML buttons: (shown at the top in the final web page)
     resistorButt = select("#CreateResistorButton");
     resistorButt.mousePressed(createResistorClicked);
 
@@ -73,6 +72,7 @@ function draw() {
 let newElement;
 
 function mousePressed() {
+    //begin an object at the clicked point, snapping to nearby connections if available
     if (newElement == null) return;
     if (mouseX > width || mouseX < 0 || mouseY < 0 || mouseY > height) return;
     newElement.setStartPoint(createVector(mouseX, mouseY));
@@ -80,11 +80,13 @@ function mousePressed() {
 }
 
 function mouseDragged() {
+    //as mouse is dragged, move the end of the object
     if (newElement == null) return;
     newElement.setEndPoint(createVector(mouseX, mouseY));
 }
 
 function mouseReleased() {
+    //ends the object, snapping to nearby objects if applicable. 
     if (mouseX > width || mouseX < 0 || mouseY < 0 || mouseY > height) return;
     if (newElement == null) return;
 
@@ -95,6 +97,7 @@ function mouseReleased() {
     newElement = null;
 }
 
+//below are the functions defining what happens if a button is pressed. 
 function createResistorClicked() {
     print("Resistor Button Clicked");
 

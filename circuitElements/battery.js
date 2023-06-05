@@ -1,6 +1,8 @@
 class Battery extends CircuitElement {
+    //This is the battery class, which represents a single battery. It extends circuitElement, meaning it inherits all of the thing listed in the circuitElement.js listed below. 
 
     constructor(voltage = 0, internalResistance = 0, startPoint, endPoint) {
+        //This is constructor for a battery, which can have a voltage and internal Resistance. The startpoint and endpoint are for the visuals. 
         super(startPoint, endPoint);
         this.voltage = voltage;
         this.resistance = internalResistance;
@@ -16,6 +18,7 @@ class Battery extends CircuitElement {
     }
 
     renderElement() {
+        //This is the function that actually draws the battery in the html page to look like a battery would. 
 
         const dx = this.endPoint.x - this.startPoint.x;
         const dy = this.endPoint.y - this.startPoint.y;
