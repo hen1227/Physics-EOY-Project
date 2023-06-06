@@ -1,17 +1,15 @@
+//Main file for the circuit simulator.
+
 // global constants 
 const SNAP_DISTANCE = 30;
-//This is the sketch.js file, which is where the code for handling the visuals of the circuit is implemented. 
 
-// 
-let startingBattery, resistor1, resistor2, valueSlider;
-let resistorButt, capacitorButt, inductorButt, wireButt;
+//This instantiates some global items as well as the buttons and sliders
 let mainCircuit;
-let nextType;
-//This instantiates some test items as well as the buttons and sliders
+let valueSlider, resistorButt, capacitorButt, inductorButt, wireButt;
 
 // Called once at the start
+// p5js built-in function
 function setup() {
-    // p5.js setup function
 
     let canvas = createCanvas(window.innerWidth, window.innerWidth / 8 * 6);
     canvas.parent("#canvas"); // Allows canvas object to be centered in div
@@ -51,6 +49,7 @@ function setup() {
 }
 
 // Called Every frame
+// p5js built-in function
 function draw() {
     background(245);
     text("Value: " + valueSlider.value(), width / 2 - 80, 10);
@@ -71,6 +70,7 @@ function draw() {
 
 let newElement;
 
+// p5js built-in function
 function mousePressed() {
     //begin an object at the clicked point, snapping to nearby connections if available
     if (newElement == null) return;
@@ -79,12 +79,14 @@ function mousePressed() {
 
 }
 
+// p5js built-in function
 function mouseDragged() {
     //as mouse is dragged, move the end of the object
     if (newElement == null) return;
     newElement.setEndPoint(createVector(mouseX, mouseY));
 }
 
+// p5js built-in function
 function mouseReleased() {
     //ends the object, snapping to nearby objects if applicable. 
     if (mouseX > width || mouseX < 0 || mouseY < 0 || mouseY > height) return;

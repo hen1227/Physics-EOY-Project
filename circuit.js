@@ -66,8 +66,6 @@ class Circuit {
 
 
     // Locates all of the unique, closed paths through the circuit.
-    //This will later allow us to create the equations as mentioned in the README
-    // Fairly confindent this part works fine.
     findPaths(startElement, visited = [], path = [], isPositive = true) {
 
         if (startElement != null) {

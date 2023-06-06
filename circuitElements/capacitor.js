@@ -6,12 +6,13 @@ class Capacitor extends CircuitElement {
         this.charge = 0;
     }
 
-    // Value + units of a capacitor, in this case farads 
     value() {
+        // Value + units (Farads) 
         return this.capacitance + " F";
     }
 
-    getVoltage(isPositive) { //Gives the voltage of a capacitor with the parameter of whether or not it is positive
+    //Gives the voltage of a capacitor with the parameter of whether or not it is positive
+    getVoltage(isPositive) {
         let circuit = mainCircuit;
         let dt = 1 / 24;
 
@@ -22,8 +23,8 @@ class Capacitor extends CircuitElement {
         return (isPositive ? -1 : 1) * abs(voltageDrop);
     }
 
+    //Method for handing the visuals which we will use later in the sketch.js class
     renderElement() {
-        //Method for handing the visuals which we will use later in the sketch.js class
         const dx = this.endPoint.x - this.startPoint.x;
         const dy = this.endPoint.y - this.startPoint.y;
         const seperation = Math.pow(this.capacitance, 0.5) * 0.1 + 0.1;
